@@ -1,0 +1,31 @@
+---
+
+- hosts: eos4
+  connection: local
+
+  tasks:
+
+    - name: configure access ports
+      eos_l2_interface:
+        provider: "{{cli}}"
+        authorize: yes
+        name: "{{item}}"
+        mode: access
+        access_vlan: "101"
+      with_items: "{{ access_ports }}" 
+    
+    - name: configure trunk ports
+      eos_l2_interface:
+        provider: "{{cli}}"
+        authorize: yes
+        name: "{{item}}"
+        mode: trunk
+        native_vlan: "101"
+        trunk_allowed_vlans: 100-400
+      with_items: "{{ trunk_ports }}"
+
+
+
+
+ 
+

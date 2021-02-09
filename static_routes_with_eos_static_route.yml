@@ -1,0 +1,27 @@
+---
+
+- hosts: eos1
+  connection: local
+
+  tasks:
+
+    - name: create static routes on eos1
+      eos_static_route:
+        provider: "{{cli}}"
+        authorize: yes
+        save_when: changed
+        address: {{item}}
+        admin_distance: 5
+        next_hop: 192.168.12.2
+        state: present
+      with_items: ['201.100.0.0/24', '202.100.20.0/24', '92.20.20.8/29']       
+    
+    - name: show static routes
+      eos_command:
+        provider: "{{cli}}"
+        commands:
+          show ip route static
+      
+      register: output
+
+    - include: print_output.yml

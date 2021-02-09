@@ -1,0 +1,41 @@
+---
+# This playbook will create vlans 100,200, 300, and 400 on all switches
+
+- hosts: switches
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+    vlans:
+      100: "CORE"
+      200: "MONITORING"
+      300: "ACCESS"
+      400: "GUEST_WIFI"
+
+  tasks:
+
+    - name: create vlans
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          - name {{item.value}}
+        parents:
+          - vlan {{item.key}}
+      with_dict: "{{vlans}}"
+    
+    - name: show vlan brief
+      ios_command:
+        provider: "{{cli}}"
+        commands: show vlan brief
+      
+      register: vlan_brief
+    
+    - name: print output to screen
+      debug:
+        var=vlan_brief.stdout_lines
+
+

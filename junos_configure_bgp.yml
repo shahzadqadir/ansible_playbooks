@@ -1,0 +1,60 @@
+
+---
+
+- hosts: vmx1
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco123
+
+  tasks:
+
+    - name: configure bgp on vmx1
+      junos_config:
+        provider: "{{cli}}"
+        lines:
+          - set routing-options autonomous-system 100
+          - set protocols bgp group external_peers neighbor 192.168.13.3 peer-as 300
+          # Create policy statement
+          - set policy-options policy-statement direct2bgp from protocol direct route-filter 11.11.11.11/32 exact
+          - set policy-options policy-statement direct2bgp then accept
+          # Export policy into bgp
+          - set protocols bgp group external_peers export direct2bgp
+
+- hosts: vmx3
+  gather_facts: false
+  connection: local
+
+  vars:
+
+    cli:
+      usrname: nms
+      password: cisco123
+
+  tasks:
+
+    - name: configure bgp on vmx3
+      junos_config:
+        provider: "{{cli}}"
+        lines:
+          - set routing-options autonomous-system 300
+          - set protocols bgp group external_peers neighbor 192.168.13.1 peer-as 100
+# vmx1
+
+# set routing-options autonomous-system 100
+
+# set protocols bgp group external_peers neighbor 192.168.13.3 peer-as 300
+
+# set policy-options policy-statement direct2bgp from protocol direct route-filter 11.11.11.11/32 exact
+# set policy-options policy-statement direct2bgp then accept
+
+# set protocols bgp group external_peers export direct2bgp
+
+# vmx3
+
+# set routing-options autonomous-system 300
+
+# set protocols bgp group external_peers neighbor 192.168.13.1 peer-as 100

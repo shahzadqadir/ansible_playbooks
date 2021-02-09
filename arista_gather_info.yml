@@ -1,0 +1,59 @@
+---
+- hosts: switches
+  connection: local
+
+  tasks:
+
+    - name: pull device information
+      eos_command:
+        provider: "{{cli}}"
+        authorize: yes
+        commands:
+          - show ip int brief
+          - show lldp neighbor
+          - show inventory
+          - show users accounts
+      
+      register: output
+    
+    - include: print_output.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# [switches]
+# eos1 ansible_host=1.1.1.1
+# eos2 ansible_host=2.2.2.2
+# eos3 ansible_host=3.3.3.3
+# eos4 ansible_host=4.4.4.4
+
+# ---
+# cli:
+#   username: nms
+#   password: cisco
+
+# ---
+
+# - name: print output to screen
+#   debug:
+#     var=output.stdout_lines
+

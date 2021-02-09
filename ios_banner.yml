@@ -1,0 +1,27 @@
+---
+# This playbook uses ios_banner module to set login banner on all my network devices
+# Second task of this playbook is to save the configurations to startup
+
+- hosts: network
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+  
+  tasks:
+
+    - name: setup login banner on Cisco IOS devices
+      ios_banner:
+        provider: "{{cli}}"
+        banner: login
+        state: present
+        text: "{{lookup('file', 'banner.txt')}}"
+        
+    
+    - name: save configurations to startup
+      ios_config:
+        provider: "{{cli}}"
+        save_when: always

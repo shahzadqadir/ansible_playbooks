@@ -1,0 +1,77 @@
+---
+### to run this playbook, save it as .yml file ####
+
+# This playbook is used to ping test all the network devices
+
+
+# Play 1: to add loopack 33 on R3
+
+- hosts: r3site1
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  tasks:
+
+    - name: add loopback33 interface on R3
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          ip address 33.33.33.33 255.255.255.255
+        parents:
+          interface loopback33
+
+# Play 2: add static route & redistribute on R2 to point to R3's Loopback
+
+- hosts: r2site1
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  tasks:
+
+    - name: add static route point to R3's Loopback33
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          ip route 33.33.33.33 255.255.255.255 192.168.23.3
+
+    - name: redistribute static route to loopback33 into RIP
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          redistribute static
+        parents:
+          router rip
+
+# Play 3: Test connectivity to R3's Loopback within Site 1
+
+- hosts: site1_routers, site1_switches
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  tasks:
+
+    - name: Ping test connectivity to R3's Loopback33
+      ios_command:
+        provider: "{{cli}}"
+        commands: ping 33.33.33.33 repeat 5
+
+      register: ping_results
+
+    - name: print output to screen
+      debug:
+        var=ping_results.stdout_lines

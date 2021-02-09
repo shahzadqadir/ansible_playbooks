@@ -1,0 +1,143 @@
+---
+# SAVE THIS FILE AS .yml to run it on Ansible host
+#
+# This playbook is used to configure OSPF in our network
+
+# Play 1: configure area 100
+
+- hosts: area100_routers
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+  
+  tasks:
+
+    - name: configure ospf in area 100
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          network 0.0.0.0 255.255.255.255 area 100
+        parents:
+          router ospf 100
+        save_when: change
+    
+    - name: pull device configurations for ospf area 100
+      ios_command:
+        provider: "{{cli}}"
+        commands:
+          show run | section ospf
+      register: show_run_output
+    
+    - name: print output to screen
+      debug:
+        var=show_run_output.stdout_lines
+
+# Play 2: to configure ospf area 0
+
+- hosts: r3site1
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+  
+  tasks:
+
+    - name: configure ospf area 0
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          - network 192.168.34.0 0.0.0.255 area 0
+          - network 192.168.13.0 0.0.0.255 area 100
+          - network 192.168.23.0 0.0.0.255 area 100
+          - network 200.0.0.3 0.0.0.0 area 0
+        parents:
+          router ospf 100
+
+# Play 3 for ospf area 0 configuration
+
+- hosts: r4site2
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  tasks:
+
+    - name: configure ospf area 0 on R4
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          - network 192.168.34.0 0.0.0.255 area 0
+          - network 192.168.45.0 0.0.0.255 area 200
+          - network 200.0.0.4 0.0.0.0 area 0
+        parents:
+          router ospf 100
+
+# Play 4: configure ospf area 200
+
+- hosts: area200_routers
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  tasks:
+
+    - name: configure ospf area 200
+      ios_config:
+        provider: "{{cli}}"
+        lines:
+          network 0.0.0.0 255.255.255.255 area 200
+        parents:
+          router ospf 100
+
+# Play 5: show ospf status
+
+- hosts: all
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli: 
+      username: nms
+      password: cisco
+  
+  tasks:
+
+    - name: check ospf status
+      ios_command:
+        provider: "{{cli}}"
+        commands:
+          - show ip ospf interface brief
+      register: print_output
+
+    - name: print output to screen
+      debug:
+        var=print_output.stdout_lines
+
+    - name: check ospf routing table
+      ios_command:
+        provider: "{{cli}}"
+        commands:
+          - show run | section ospf
+
+      register: output_variable
+
+    - name: print ospf config to screen
+      debug:
+        var=output_variable.stdout_lines
+
+    

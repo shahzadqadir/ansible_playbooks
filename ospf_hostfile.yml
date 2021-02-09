@@ -1,0 +1,14 @@
+[area100_routers]
+r1site1 ansible_host=200.0.0.1
+r2site1 ansible_host=200.0.0.2
+sw1site1 ansible_host=200.0.0.6
+sw2site1 ansible_host=200.0.0.7
+
+[abrs]
+r3site1 ansible_host=200.0.0.3
+r4site2 ansible_host=200.0.0.4
+
+[area200_routers]
+r5site2 ansible_host=200.0.0.5
+sw3site2 ansible_host=200.0.0.8
+sw4site2 ansible_host=200.0.0.9

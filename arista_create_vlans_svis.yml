@@ -1,0 +1,36 @@
+---
+- hosts: eos4
+  connection: local
+
+  tasks:
+
+    - name: create vlans
+      eos_config:
+        provider: "{{cli}}"
+        authorize: yes
+        lines:
+          name {{item.value}}
+        parents:
+          vlan {{item.key}}
+      with_dict: "{{vlans}}"
+      
+    - name: create svi
+      eos_config:
+        provider: "{{cli}}"
+        authorize: yes
+        lines:
+          ip address {{item.value}} 255.255.255.0
+        parents:
+          interface vlan {{item.key}}
+      with_dict: "{{svis}}"
+    
+    - name: show outputs
+      eos_command:
+        provider: "{{cli}}"
+        commands:
+          - show vlan brief
+          - show ip int brief
+      
+      register: output
+
+    - include: print_output.yml

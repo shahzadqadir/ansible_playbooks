@@ -1,0 +1,23 @@
+---
+- hosts: routers
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco123
+
+  tasks:
+
+    - name: pull device configurations
+      junos_command:
+        provider: "{{cli}}"
+        commands: show configuration | no-more
+
+      register: junos_configs
+
+    - name: save device configurations
+      copy:
+        content: "{{junos_configs.stdout[0]}}"
+        dest: junos_config/{{inventory_hostname}}.txt

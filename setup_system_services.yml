@@ -1,0 +1,44 @@
+## NOTE:
+# Please save this file as .yml to run it from Ansible Host.
+# I had to save it as text file as Udemy don't allow yml files
+---
+# Enable NTP server on 1.1.1.1
+# Setup logging to server 192.168.12.1
+# Enable Service Password Encryption
+# Disable HTTP Server
+
+- hosts: network
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      username: nms
+      password: cisco
+
+  
+  tasks:
+
+    - name: setup system services
+      ios_config:
+        provider: "{{cli}}"
+        backup: yes
+        backup_options:
+          dir_path: /home/backups
+        lines:
+          - ntp server 1.1.1.1
+          - logging host 192.168.12.1
+          - service password-encryption
+          - no ip http server
+    
+    - name: check running config for services
+      ios_command:
+        provider: "{{cli}}"
+        commands:
+          - show run | include ntp|logging|password-encryption|http
+      
+      register: command_output
+    
+    - name: print output to screen
+      debug:
+        var=command_output.stdout_lines
